@@ -1,0 +1,57 @@
+{
+  "download_url": "https://tivustream.website/urls/listm3u",
+  "keep_groups": [
+    "Canali RAI",
+    "Canali Mediaset",
+    "News e Canali Istituzionali"
+  ],
+  "exclude_groups": [
+    "Altri Canali Nazionali",
+    "Abruzzo", "Basilicata", "Calabria", "Campania", "Emilia Romagna",
+    "Friuli Venezia Giulia", "Lazio", "Liguria", "Lombardia", "Marche",
+    "Molise", "Piemonte", "Puglia", "Sardegna", "Sicilia", "Toscana",
+    "Trentino Alto Adige", "Umbria", "Valle D'Aosta", "Veneto",
+    "Canali Musicali (Web Radio)", "Wedo Tv", "TivuStream Lista",
+    "Canali per Bambini/Ragazzi", "Canali Religiosi", 
+    "PlutoTV", "Canali Sport Italiani",
+    "Samsung Channels"
+  ],
+  "force_keep_channels": [
+    "Rai 1", "Rai 2", "Rai 3", "Rai 4", "Rai 5", "Rai Movie", "Rai Premium",
+    "Canale 5", "Italia 1", "Rete 4", "La 5", "Iris", "Cine 34", "Focus",
+    "Mediaset 20", "Top Crime", "La7", "La7d",
+    "Real Time", "DMAX", "Nove", "HGTV", "Food Network", "Motortrend", "Real time"
+  ],
+  "force_exclude_channels": [
+    "GF Regia 1", "GF Regia 2", "GF Un'ora fa",
+    "RaiPlay 1", "RaiPlay 2", "RaiPlay 3",
+    "Bloomberg", "Class CNBC", "Business24 Tv", "Finanza Now", "ADN Kronos",
+    "Per Sempre News", "QVC Italia", "Senato Tv", "27 Twentyseven", "Rai Yoyo", "TG COM 24",
+    "Rai Gulp"
+  ],
+  "exclude_patterns": [
+    ".*test.*",
+    ".*backup.*", 
+    ".*temp.*",
+    ".*\\+1$",
+    ".*Plus$",
+    "^GF\\s",
+    "^Rai\\s3\\s[A-Z]",
+    "^TGR\\s.*",
+    "^TGS\\s.*",
+    "^TG\\sNorba.*",
+    "^Tele\\sNorba.*",
+    "^Cusano.*",
+    "^Obiettivo\\sNews.*",
+    "^ON\\sTv.*",
+    ".*Radio.*",
+    ".*Web\\s*Radio.*"
+  ],
+  "quality_management": {
+    "enable_quality_priority": true,
+    "quality_suffixes": ["4K", "UHD", "HD", "HQ"],
+    "priority_order": ["4K", "UHD", "HD", "HQ"],
+    "exclude_lower_quality": true,
+    "normalize_channel_names": true
+  }
+}
