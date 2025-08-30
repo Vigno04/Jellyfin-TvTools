@@ -23,7 +23,15 @@ class ExportImportMixin:
     def export_clicked(self, _):
         def task():
             self.update_status("Exporting selected channels...")
-            success, msg = self.processor.export_m3u(self.channels, progress_callback=self.update_status)
+            override = self.processor.config.get('export_override_path') or None
+            # ensure parent directory exists if override provided
+            if override:
+                import os
+                try:
+                    os.makedirs(os.path.dirname(override) or '.', exist_ok=True)
+                except Exception:  # noqa: BLE001
+                    pass
+            success, msg = self.processor.export_m3u(self.channels, output_path=override, progress_callback=self.update_status)
             self.update_status(msg, is_error=not success)
             if success:
                 self.page.snack_bar = self._snack(msg)

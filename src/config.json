@@ -1,0 +1,67 @@
+{
+  "download_url": "https://tivustream.website/urls/listm3u",
+  "auto_select_enabled": true,
+  "keep_groups": [],
+  "exclude_groups": [],
+  "force_keep_channels": [],
+  "force_exclude_channels": [],
+  "exclude_patterns": [
+    ".*test.*",
+    ".*backup.*",
+    ".*temp.*",
+    ".*prova.*",
+    ".*demo.*"
+  ],
+  "output_directories": {
+    "base_output_dir": "data",
+    "m3u_output": {
+      "directory": "data",
+      "filename": "tivustream_list.m3u"
+    },
+    "session_backups": {
+      "directory": "data",
+      "filename_prefix": "session_backup_"
+    },
+    "channel_lists": {
+      "directory": "data",
+      "filename_prefix": "channel_list_"
+    },
+    "current_session": {
+      "directory": "data",
+      "filename": "session.json"
+    }
+  },
+  "quality_management": {
+    "use_name_based_quality": false,
+    "quality_suffixes": [
+      "4K",
+      "UHD",
+      "HD",
+      "HQ"
+    ],
+    "priority_order": [
+      "4K",
+      "UHD",
+      "HD",
+      "HQ"
+    ],
+    "exclude_lower_quality": true,
+    "normalize_channel_names": true,
+    "prioritize_stream_analysis": true,
+    "use_stream_quality_cache": false,
+    "stream_quality_cache_ttl": 3600,
+    "max_parallel_stream_probes": 12,
+    "max_stream_probe_bytes": 16384,
+    "use_range_header": false,
+    "normalization_exclusions": [
+      "Rai 4K"
+    ],
+    "alias_rules": [
+      {
+        "pattern": "^rai\\s*play\\s+",
+        "replace": "Rai "
+      }
+    ]
+  },
+  "export_override_path": "C:\\Jellyfin\\Data\\Tv\\tivustream_list.m3u"
+}

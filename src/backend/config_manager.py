@@ -90,6 +90,20 @@ def load_config(config_path: str) -> Dict[str, Any]:
         return get_default_config()
 
 
+def save_config(config_path: str, config: Dict[str, Any]) -> bool:
+    """Persist configuration to JSON file.
+
+    Returns True on success, False otherwise.
+    """
+    try:
+        os.makedirs(os.path.dirname(config_path), exist_ok=True)
+        with open(config_path, "w", encoding="utf-8") as f:
+            json.dump(config, f, indent=2, ensure_ascii=False)
+        return True
+    except Exception:
+        return False
+
+
 def get_output_directory(config: Dict[str, Any], output_type: str) -> str:
     """
     Get output directory path for a specific output type.
