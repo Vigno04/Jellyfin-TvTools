@@ -3,19 +3,38 @@
 
 import os
 import sys
-import threading
-import time
-import json
+import threading  # retained for potential future direct usage
+import time  # retained (some methods moved to mixins still import time locally)
+import json  # kept for backward compatibility (may be referenced dynamically)
 import flet as ft
 
+# Add backend path to sys.path to ensure imports work
+backend_path = os.path.join(os.path.dirname(__file__), '..', 'backend')
+if backend_path not in sys.path:
+    sys.path.insert(0, backend_path)
+
 from backend.m3u_processor import M3UProcessor  # noqa: E402
+from backend.config_manager import get_output_path, ensure_output_directory_exists  # noqa: E402
 from .session_manager import SessionManager  # noqa: E402
 from .group_manager import GroupManagerMixin  # noqa: E402
 from .channel_list import ChannelListView  # noqa: E402
 from .async_utils import run_background  # noqa: E402
+# Newly factored mixins
+from .session_status_mixin import SessionStatusMixin  # noqa: E402
+from .playlist_mixin import PlaylistMixin  # noqa: E402
+from .channels_mixin import ChannelsMixin  # noqa: E402
+from .optimization_mixin import OptimizationMixin  # noqa: E402
+from .export_import_mixin import ExportImportMixin  # noqa: E402
 
 
-class JellyfinTVToolsApp(GroupManagerMixin):
+class JellyfinTVToolsApp(
+    GroupManagerMixin,
+    SessionStatusMixin,
+    PlaylistMixin,
+    ChannelsMixin,
+    OptimizationMixin,
+    ExportImportMixin,
+):
     def __init__(self, page: ft.Page):
         # Core state
         self.page = page
@@ -60,8 +79,8 @@ class JellyfinTVToolsApp(GroupManagerMixin):
         # Initialize group management state
         self.init_group_state()
 
-        # Session persistence
-        self.session_manager = SessionManager()
+        # Session persistence - pass config for output directory settings
+        self.session_manager = SessionManager(config=self.processor.config)
 
         # Build the UI
         self.build_ui()
@@ -284,191 +303,9 @@ class JellyfinTVToolsApp(GroupManagerMixin):
             self.page.overlay.append(self.channel_list_picker)
         self.page.update()
 
-    def update_status(self, message: str, is_error: bool = False):
-        low = message.lower()
-        if low.startswith("quality probing"):
-            import re as _re
-            m = _re.search(r"quality probing (\d+)/(\d+)", low)
-            if m:
-                cur = int(m.group(1))
-                total = int(m.group(2)) or 1
-                self.progress_bar.visible = True
-                self.progress_bar.value = cur/total
-        elif "quality merge complete" in low:
-            self.progress_bar.value = 1
-        elif low.startswith("link check "):
-            import re as _re
-            m = _re.search(r"link check (\d+)/(\d+)", low)
-            if m:
-                cur = int(m.group(1))
-                total = int(m.group(2)) or 1
-                self.progress_bar.visible = True
-                self.progress_bar.value = cur/total
-        elif low.startswith("link check complete"):
-            self.progress_bar.value = 1
-        
-        self.status_text.value = message
-        self.status_text.color = ft.Colors.RED_300 if is_error else ft.Colors.GREY_400
-        self.page.update()
+    # (All operational methods moved to dedicated mixins for clarity.)
 
-    def show_progress(self, show: bool):
-        self.progress_bar.visible = show
-        self.load_button.disabled = show
-        self.page.update()
-
-    def restore_saved_selections(self):
-        """Restore previously saved channel selections, preserving existing selections"""
-        if not self.channels:
-            return
-            
-        # Try to load auto-saved selections first
-        if self.session_manager.load_session():
-            return
-            
-        # No manual fallback needed anymore - session manager handles everything
-
-    def load_saved_session(self):
-        """Load complete session from previous app run"""
-        if not self.session_manager.has_saved_session():
-            return
-            
-        session_data = self.session_manager.load_session()
-        if not session_data:
-            return
-            
-        try:
-            # Restore complete state
-            self.channels = session_data.get("channels", [])
-            self.playlist_sources = session_data.get("playlist_sources", [])
-            self.stream_urls_seen = session_data.get("stream_urls_seen", set())
-            
-            # Restore UI field values
-            url_value = session_data.get("url_field", "")
-            
-            if url_value:
-                self.url_field.value = url_value
-            
-            # Update UI state
-            if self.channels:
-                self.filtered_channels = self.channels.copy()
-                self.populate_groups()
-                self.refresh_channels_display()
-                self.update_sources_list_text()
-                
-                # Update button states based on channels availability
-                self.update_button_states()
-                
-                self.update_status(f"Session restored: {len(self.channels)} channels from {len(self.playlist_sources)} playlists")
-            
-            self.page.update()
-        except Exception as e:
-            self.update_status(f"Failed to restore session: {e}", is_error=True)
-
-    def update_button_states(self):
-        """Update button states based on current channel availability"""
-        has_channels = bool(self.channels)
-        has_sources = bool(self.playlist_sources)
-        
-        # These buttons require channels to be available
-        for button in (self.merge_quality_button, self.remove_dead_button, 
-                      self.remove_unwanted_button, self.optimize_all_button, 
-                      self.export_button):
-            button.disabled = not has_channels
-        
-        # Clear sources button is enabled when there are sources or channels
-        self.clear_sources_btn.disabled = not (self.playlist_sources or has_channels)
-        # Refresh sources button is enabled only when there are sources
-        self.refresh_sources_btn.disabled = not has_sources
-        
-        self.page.update()
-
-    def save_current_session(self):
-        """Save complete current session state"""
-        try:
-            self.session_manager.save_session(
-                channels=self.channels,
-                playlist_sources=self.playlist_sources,
-                stream_urls_seen=self.stream_urls_seen,
-                url_field=self.url_field.value if self.url_field else ""
-            )
-        except Exception as e:
-            print(f"Failed to save session: {e}")
-
-    def add_playlist_clicked(self, _):
-        url = (self.url_field.value or '').strip()
-        if not url:
-            self.update_status("Enter a playlist URL first", is_error=True)
-            return
-        
-        if any(s['url'] == url for s in self.playlist_sources):
-            self.update_status("Playlist already added")
-            return
-        
-        def task():
-            # Load existing selections before adding new channels
-            existing_selections = set()
-            for ch in self.channels:
-                if ch.get('selected'):
-                    existing_selections.add(ch['name'])
-            
-            success, lines, error = self.processor.download_m3u(url, progress_callback=self.update_status)
-            if not success:
-                self.update_status(error, is_error=True)
-                return
-            
-            added = 0
-            skipped = 0
-            for ch in self.processor.parse_channels(lines):
-                stream_url = ch['lines'][-1] if ch['lines'] else None
-                if not stream_url or stream_url in self.stream_urls_seen:
-                    skipped += 1
-                    continue
-                
-                self.stream_urls_seen.add(stream_url)
-                ch['source_url'] = url
-                
-                # Preserve existing selections - new duplicates start unselected
-                if ch['name'] in existing_selections:
-                    ch['selected'] = False  # New duplicate stays unselected
-                else:
-                    ch['selected'] = False  # Default state
-                
-                self.channels.append(ch)
-                added += 1
-            
-            self.filtered_channels = self.channels.copy()
-            self.playlist_sources.append({'url': url, 'channels_added': added, 'skipped': skipped})
-            
-            self.update_sources_list_text()
-            self.apply_filters_to_channels()
-            self.restore_saved_selections()  # Apply persistent selections
-            self.populate_groups()
-            self.refresh_channels_display()
-            
-            # Auto-save current session after initial load
-            self.save_current_session()
-            
-            # Update button states based on channels availability
-            self.update_button_states()
-            
-            self.update_quality_info()
-            self.update_status(f"Added playlist: {added} new, {skipped} duplicates (total {len(self.channels)})")
-        
-        run_background(
-            task,
-            before=lambda: self.show_progress(True),
-            after=lambda: self.show_progress(False),
-            name="add-playlist"
-        )
-
-    def update_sources_list_text(self):
-        if not self.playlist_sources:
-            self.sources_list_text.value = "No playlists added"
-        else:
-            parts = [f"{i+1}. {os.path.basename(s['url']) or s['url']} (+{s['channels_added']}/~{s['skipped']})" 
-                    for i, s in enumerate(self.playlist_sources)]
-            self.sources_list_text.value = " | ".join(parts)
-        self.sources_list_text.update()
+    # playlist management, channel selection, optimization, export/import moved
 
     def apply_filters_to_channels(self):
         filtered = self.processor.filter_channels(
@@ -794,8 +631,11 @@ class JellyfinTVToolsApp(GroupManagerMixin):
         def task():
             try:
                 self.update_status("Exporting session...")
-                # Use session manager to create backup
-                backup_file = os.path.join("data", f"session_backup_{int(time.time())}.json")
+                # Use configuration-based path for backup
+                timestamp = int(time.time())
+                backup_file = get_output_path(self.processor.config, "session_backups", str(timestamp))
+                ensure_output_directory_exists(self.processor.config, "session_backups")
+                
                 session_data = {
                     "channels": self.channels,
                     "playlist_sources": self.playlist_sources,
@@ -806,7 +646,7 @@ class JellyfinTVToolsApp(GroupManagerMixin):
                 with open(backup_file, "w", encoding="utf-8") as f:
                     json.dump(session_data, f, indent=2, ensure_ascii=False)
                 
-                msg = f"Session exported to {backup_file}"
+                msg = f"Session exported to {os.path.basename(backup_file)}"
                 self.update_status(msg)
                 self.page.snack_bar = ft.SnackBar(
                     ft.Text(msg),
@@ -830,7 +670,16 @@ class JellyfinTVToolsApp(GroupManagerMixin):
             try:
                 self.update_status("Looking for session backup...")
                 import glob
-                backups = glob.glob("data/session_backup_*.json")
+                
+                # Use configuration-based directory for backups
+                backup_dir = get_output_path(self.processor.config, "session_backups", "").rsplit(os.sep, 1)[0]
+                backup_pattern = os.path.join(backup_dir, "session_backup_*.json")
+                backups = glob.glob(backup_pattern)
+                
+                # Fallback to legacy data directory if no backups found in configured location
+                if not backups:
+                    backups = glob.glob("data/session_backup_*.json")
+                
                 if not backups:
                     self.update_status("No session backups found", is_error=True)
                     return
@@ -897,8 +746,11 @@ class JellyfinTVToolsApp(GroupManagerMixin):
                     if channel_info["name"]:  # Only add if name exists
                         channel_list.append(channel_info)
                 
-                # Create export file
-                export_file = os.path.join("data", f"channel_list_{int(time.time())}.json")
+                # Create export file using configuration-based path
+                timestamp = int(time.time())
+                export_file = get_output_path(self.processor.config, "channel_lists", str(timestamp))
+                ensure_output_directory_exists(self.processor.config, "channel_lists")
+                
                 export_data = {
                     "exported_at": time.strftime("%Y-%m-%d %H:%M:%S"),
                     "total_channels": len(channel_list),

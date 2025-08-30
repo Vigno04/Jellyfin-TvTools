@@ -21,8 +21,10 @@ class ChannelListView:
         if not group_visible:
             return None
         selected = channel.get('selected', False)
+        # Pretty display name (UI only) – keep underlying 'name' unchanged for logic/search
+        label_text = self._pretty_channel_name(channel.get('name', ''))
         checkbox = ft.Checkbox(
-            label=channel['name'],
+            label=label_text,
             value=selected,
             on_change=lambda e, c=channel: self.on_checkbox_change(c, e.control.value),
             fill_color=ft.Colors.CYAN_ACCENT_400,
@@ -51,3 +53,22 @@ class ChannelListView:
             if row:
                 self.list_view.controls.append(row)
         self.list_view.update()
+
+    # --- helpers ---------------------------------------------------------
+    def _pretty_channel_name(self, raw: str) -> str:
+        if not raw:
+            return raw
+        acronyms = {"hd", "uhd", "fhd", "tv", "ip", "iptv", "4k"}
+        # split by spaces only (avoid touching punctuation inside tokens)
+        words = raw.split()
+        pretty_words: list[str] = []
+        for w in words:
+            lw = w.lower()
+            if lw in acronyms:
+                pretty_words.append(lw.upper())
+            elif lw.isdigit():
+                pretty_words.append(w)  # keep numbers as-is
+            else:
+                # Capitalize first letter, keep rest lowercase
+                pretty_words.append(lw.capitalize())
+        return " ".join(pretty_words)

@@ -4,11 +4,25 @@ import os
 import json
 from typing import List, Dict, Any, Optional
 
+try:  # Support package import and legacy direct import
+    from ..backend.config_manager import get_output_path, ensure_output_directory_exists  # type: ignore
+except ImportError:  # Fallback
+    import sys
+    sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'backend'))
+    from config_manager import get_output_path, ensure_output_directory_exists  # type: ignore
+
 class SessionManager:
-    def __init__(self, data_dir: str = "data"):
+    def __init__(self, data_dir: str = "data", config: Dict[str, Any] = None):
         self.data_dir = data_dir
-        self.session_file = os.path.join(data_dir, "session.json")
-        os.makedirs(data_dir, exist_ok=True)
+        self.config = config or {}
+        
+        # Use config-based path if config is provided, otherwise use legacy path
+        if self.config:
+            self.session_file = get_output_path(self.config, "current_session")
+            ensure_output_directory_exists(self.config, "current_session")
+        else:
+            self.session_file = os.path.join(data_dir, "session.json")
+            os.makedirs(data_dir, exist_ok=True)
 
     def save_session(self, channels: List[Dict[str, Any]], playlist_sources: List[Dict], 
                      stream_urls_seen: set, url_field: str = ""):
