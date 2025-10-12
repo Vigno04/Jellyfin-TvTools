@@ -1,6 +1,15 @@
 {
   "download_url": "https://tivustream.website/urls/listm3u",
   "auto_select_enabled": true,
+  "saved_playlists": [
+    "https://tivustream.website/urls/listm3u",
+    "https://github.com/sfiorini/IPTV-Italy/raw/main/iptvitaly.m3u",
+    "https://github.com/Free-TV/IPTV/raw/refs/heads/master/playlists/playlist_italy.m3u8",
+    "https://github.com/iptv-org/iptv/raw/refs/heads/master/streams/it.m3u",
+    "https://github.com/iptv-org/iptv/raw/refs/heads/master/streams/it_pluto.m3u",
+    "https://github.com/iptv-org/iptv/raw/refs/heads/master/streams/it_rakuten.m3u",
+    "https://github.com/iptv-org/iptv/raw/refs/heads/master/streams/it_samsung.m3u"
+  ],
   "keep_groups": [],
   "exclude_groups": [],
   "force_keep_channels": [],
@@ -63,5 +72,5 @@
       }
     ]
   },
-  "export_override_path": "C:\\Jellyfin\\Data\\Tv\\tivustream_list.m3u"
+  "export_override_path": "Z:\\services\\jellyfin\\TV\\tv_list.m3u"
 }

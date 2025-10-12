@@ -99,6 +99,8 @@ class SessionStatusMixin:
             button.disabled = not has_channels
         self.clear_sources_btn.disabled = not (self.playlist_sources or has_channels)
         self.refresh_sources_btn.disabled = not has_sources
+        if hasattr(self, 'update_saved_playlist_button_state'):
+            self.update_saved_playlist_button_state()
         self.page.update()
 
     def save_current_session(self):  # persisted after user-facing ops

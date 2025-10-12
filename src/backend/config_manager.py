@@ -8,6 +8,7 @@ from typing import Any, Dict
 DEFAULT_CONFIG: Dict[str, Any] = {
     "download_url": "https://tivustream.website/urls/listm3u",
     "auto_select_enabled": True,  # If False, no filtering is applied; all channels start unselected
+    "saved_playlists": ["https://tivustream.website/urls/listm3u"],  # First URL is used as default for single download
     "keep_groups": [],
     "exclude_groups": [],
     "force_keep_channels": [],
