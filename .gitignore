@@ -168,11 +168,9 @@ cython_debug/
 # Built Visual Studio Code Extensions
 *.vsix
 
+
 # Project specific data files
-data/session.json
-data/session_backup_*.json
-data/_picked_channel_list.json
-data/*.json
+data/
 
 # Temporary and cache files
 *.tmp

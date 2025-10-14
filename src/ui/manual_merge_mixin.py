@@ -26,6 +26,7 @@ class ManualMergeMixin:
         self.merge_confirm_button = None
         self.merge_search_field = None
         self.merge_all_targets = []  # Cache of all target options
+        self.merge_max_initial_options = 100  # Limit initial dropdown size for performance
 
     def open_manual_merge_dialog(self, source_channel: Channel):
         """Open the manual merge dialog with the selected source channel."""
@@ -38,10 +39,22 @@ class ManualMergeMixin:
             if ch is not source_channel
         ]
         
+        # Only load first N options initially for performance
+        initial_targets = self.merge_all_targets[:self.merge_max_initial_options]
         target_options = [
             ft.dropdown.Option(key=str(i), text=ch['name'])
-            for i, ch in self.merge_all_targets
+            for i, ch in initial_targets
         ]
+        
+        # Add hint if there are more channels
+        if len(self.merge_all_targets) > self.merge_max_initial_options:
+            target_options.append(
+                ft.dropdown.Option(
+                    key="__hint__",
+                    text=f"--- Use search to find from {len(self.merge_all_targets)} channels ---",
+                    disabled=True
+                )
+            )
         
         self.merge_search_field = ft.TextField(
             label="Search channels...",
@@ -116,15 +129,15 @@ class ManualMergeMixin:
         search_term = e.control.value.lower().strip()
         
         if search_term:
-            # Filter targets by search term
+            # Filter targets by search term - limit results for performance
             filtered_targets = [
                 (i, ch)
                 for i, ch in self.merge_all_targets
                 if search_term in ch['name'].lower()
-            ]
+            ][:200]  # Limit to 200 results max
         else:
-            # Show all targets
-            filtered_targets = self.merge_all_targets
+            # Show initial limited set when no search
+            filtered_targets = self.merge_all_targets[:self.merge_max_initial_options]
         
         # Update dropdown options
         self.merge_target_dropdown.options = [
@@ -132,8 +145,26 @@ class ManualMergeMixin:
             for i, ch in filtered_targets
         ]
         
+        # Add hint if results were limited
+        if search_term and len(filtered_targets) == 200:
+            self.merge_target_dropdown.options.append(
+                ft.dropdown.Option(
+                    key="__hint__",
+                    text="--- More results available, refine search ---",
+                    disabled=True
+                )
+            )
+        elif not search_term and len(self.merge_all_targets) > self.merge_max_initial_options:
+            self.merge_target_dropdown.options.append(
+                ft.dropdown.Option(
+                    key="__hint__",
+                    text=f"--- Use search to find from {len(self.merge_all_targets)} channels ---",
+                    disabled=True
+                )
+            )
+        
         # Reset selection if current selection is filtered out
-        if self.merge_target_dropdown.value:
+        if self.merge_target_dropdown.value and self.merge_target_dropdown.value != "__hint__":
             current_key = self.merge_target_dropdown.value
             if not any(str(i) == current_key for i, _ in filtered_targets):
                 self.merge_target_dropdown.value = None
@@ -143,12 +174,16 @@ class ManualMergeMixin:
 
     def _on_target_selected(self, e):
         """Enable confirm button when target is selected."""
-        self.merge_confirm_button.disabled = not self.merge_target_dropdown.value
+        selected_value = self.merge_target_dropdown.value
+        # Don't allow confirming on the hint option
+        self.merge_confirm_button.disabled = (
+            not selected_value or selected_value == "__hint__"
+        )
         self.page.update()
 
     def _confirm_merge(self, e):
         """Execute the manual merge operation."""
-        if not self.merge_target_dropdown.value:
+        if not self.merge_target_dropdown.value or self.merge_target_dropdown.value == "__hint__":
             return
         
         target_index = int(self.merge_target_dropdown.value)
