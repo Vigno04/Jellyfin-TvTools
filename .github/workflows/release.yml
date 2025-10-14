@@ -26,8 +26,18 @@ jobs:
         pip install -r src/requirements.txt
         pip install pyinstaller
     
+    - name: Debug - List installed packages
+      run: pip list
+    
+    - name: Debug - Python version and path
+      run: |
+        python --version
+        python -c "import sys; print('Python executable:', sys.executable)"
+        python -c "import flet; print('Flet version:', flet.__version__)"
+    
     - name: Build Windows executable
       run: python build_release.py
+      continue-on-error: false
     
     - name: Upload Windows artifact
       uses: actions/upload-artifact@v4

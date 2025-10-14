@@ -27,11 +27,15 @@ hiddenimports = [
     'flet',
     'flet.core',
     'flet.auth',
+    'flet.fastapi',
     'requests',
     'urllib3',
     'charset_normalizer',
     'idna',
     'certifi',
+    'httpx',
+    'websockets',
+    'typing_extensions',
 ] + flet_hiddenimports
 
 # Analysis - find all dependencies
