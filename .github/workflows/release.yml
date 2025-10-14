@@ -1,0 +1,131 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0
+  workflow_dispatch:  # Allow manual trigger
+
+jobs:
+  build-windows:
+    name: Build Windows Executable
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r src/requirements.txt
+        pip install pyinstaller
+    
+    - name: Build Windows executable
+      run: python build_release.py
+    
+    - name: Upload Windows artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: JellyfinTvTools-Windows
+        path: release/JellyfinTvTools-Windows.zip
+        retention-days: 5
+
+  build-linux:
+    name: Build Linux Executable
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r src/requirements.txt
+        pip install pyinstaller
+    
+    - name: Build Linux executable
+      run: python build_release.py
+    
+    - name: Upload Linux artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: JellyfinTvTools-Linux
+        path: release/JellyfinTvTools-Linux.zip
+        retention-days: 5
+
+  create-release:
+    name: Create GitHub Release
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Download Windows artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: JellyfinTvTools-Windows
+        path: ./artifacts
+    
+    - name: Download Linux artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: JellyfinTvTools-Linux
+        path: ./artifacts
+    
+    - name: Get version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+    
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Release ${{ steps.get_version.outputs.VERSION }}
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+        files: |
+          ./artifacts/JellyfinTvTools-Windows.zip
+          ./artifacts/JellyfinTvTools-Linux.zip
+        body: |
+          ## Jellyfin TV Tools ${{ steps.get_version.outputs.VERSION }}
+          
+          ### 📦 Downloads
+          
+          - **Windows**: Download `JellyfinTvTools-Windows.zip`
+          - **Linux**: Download `JellyfinTvTools-Linux.zip`
+          
+          ### 🚀 How to Use
+          
+          1. Download the appropriate ZIP file for your platform
+          2. Extract the ZIP file
+          3. Run the executable:
+             - Windows: Double-click `JellyfinTvTools.exe`
+             - Linux: Run `./JellyfinTvTools` or `./run.sh`
+          
+          ### ✨ Features
+          
+          - Modern GUI for IPTV playlist management
+          - Multi-playlist support with filtering
+          - Quality management and stream testing
+          - Session backup and restore
+          - Cross-platform support
+          
+          See the README.md for full documentation.
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
