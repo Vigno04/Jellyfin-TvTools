@@ -41,9 +41,7 @@ Jellyfin-TvTools/
 │   ├── requirements.txt  # Python dependencies (Flet, requests)
 │   ├── backend/          # Core logic: download, parse, filter, merge, export
 │   └── ui/               # Flet GUI, mixins, and helpers
-├── data/                 # Generated playlists, session, and backups
-├── test_merge_debug.py   # Test: channel merging/normalization
-├── test_normalize.py     # Test: normalization logic
+├── data/                 # Generated playlists, logic
 └── PLAYLIST_MANAGEMENT.md# Details on playlist config and migration
 ```
 
@@ -58,11 +56,6 @@ Jellyfin-TvTools/
 - Python 3.9+
 - [Flet](https://flet.dev/) (auto-installed)
 - requests (auto-installed)
-
-## 🧪 Testing & Debugging
-
-- `test_merge_debug.py`: Test merging/normalization of channel names
-- `test_normalize.py`: Test normalization/grouping logic
 
 ## 📦 Installation
 
