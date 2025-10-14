@@ -1,2 +1,4 @@
 flet>=0.21.0
 requests>=2.31.0
+httpx>=0.24.0
+websockets>=11.0

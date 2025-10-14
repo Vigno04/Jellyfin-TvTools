@@ -17,6 +17,8 @@ flet_hiddenimports = collect_submodules('flet')
 datas = [
     ('src/config.json', 'src'),
     ('src/requirements.txt', 'src'),
+    ('src/backend', 'src/backend'),  # Include backend directory
+    ('src/ui', 'src/ui'),  # Include ui directory
 ]
 
 # Add Flet data files
@@ -36,16 +38,43 @@ hiddenimports = [
     'httpx',
     'websockets',
     'typing_extensions',
+    # Project modules
+    'ui',
+    'ui.main_app',
+    'ui.channels_mixin',
+    'ui.export_import_mixin',
+    'ui.manual_merge_mixin',
+    'ui.optimization_mixin',
+    'ui.playlist_mixin',
+    'ui.session_manager',
+    'ui.session_status_mixin',
+    'ui.settings_mixin',
+    'ui.ui_update_helper',
+    'ui.async_utils',
+    'ui.channel_list',
+    'ui.group_manager',
+    'backend',
+    'backend.config_manager',
+    'backend.m3u_processor',
+    'backend.quality_manager',
+    'backend.stream_quality_checker',
+    'backend.m3u',
+    'backend.m3u.dead_check',
+    'backend.m3u.downloader',
+    'backend.m3u.exporter',
+    'backend.m3u.filters',
+    'backend.m3u.parser',
+    'backend.m3u.quality_merge',
 ] + flet_hiddenimports
 
 # Analysis - find all dependencies
 a = Analysis(
     ['run.py'],
-    pathex=[],
+    pathex=['src'],  # Add src to Python path
     binaries=[],
     datas=datas,
     hiddenimports=hiddenimports,
-    hookspath=[],
+    hookspath=['.'],  # Look for hooks in current directory
     hooksconfig={},
     runtime_hooks=[],
     excludes=[

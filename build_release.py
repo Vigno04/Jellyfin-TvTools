@@ -23,10 +23,14 @@ def run_command(cmd, description):
     try:
         result = subprocess.run(cmd, check=True, capture_output=True, text=True)
         print(result.stdout)
+        if result.stderr:
+            print(f"Warnings: {result.stderr}")
         return True
     except subprocess.CalledProcessError as e:
         print(f"Error: {description} failed!")
-        print(f"Error output: {e.stderr}")
+        print(f"Exit code: {e.returncode}")
+        print(f"Stdout: {e.stdout}")
+        print(f"Stderr: {e.stderr}")
         return False
 
 def install_pyinstaller():
