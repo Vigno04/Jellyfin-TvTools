@@ -47,10 +47,10 @@ jobs:
       shell: pwsh
       run: |
         if (Test-Path "release/JellyfinTvTools-Windows.zip") {
-          Write-Host "✓ Build successful - ZIP file created"
+          Write-Host "[OK] Build successful - ZIP file created"
           Get-ChildItem release/JellyfinTvTools-Windows.zip
         } else {
-          Write-Host "✗ Build failed - ZIP file not found"
+          Write-Host "[ERROR] Build failed - ZIP file not found"
           exit 1
         }
     

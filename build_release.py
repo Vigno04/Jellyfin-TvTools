@@ -165,7 +165,7 @@ def main():
     
     # Step 1: Install PyInstaller
     if not install_pyinstaller():
-        print("\n❌ Build failed: Could not install PyInstaller")
+        print("\n[X] Build failed: Could not install PyInstaller")
         return 1
     
     # Step 2: Clean previous builds
@@ -173,15 +173,15 @@ def main():
     
     # Step 3: Build executable
     if not build_executable():
-        print("\n❌ Build failed: PyInstaller build error")
+        print("\n[X] Build failed: PyInstaller build error")
         return 1
     
     # Step 4: Create release package
     if not create_release_package():
-        print("\n❌ Build failed: Could not create release package")
+        print("\n[X] Build failed: Could not create release package")
         return 1
     
-    print_step("✅ Build completed successfully!")
+    print_step("Build completed successfully!")
     print("\nYour release package is ready in the 'release/' directory")
     print("You can now distribute the ZIP file to users")
     
