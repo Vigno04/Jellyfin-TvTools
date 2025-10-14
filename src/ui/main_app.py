@@ -590,8 +590,10 @@ class JellyfinTVToolsApp(
 
 
 def main(page: ft.Page):
+    """Initialize and run the Jellyfin TV Tools application.
+    
+    Args:
+        page: The Flet page object provided by ft.app()
+    """
     JellyfinTVToolsApp(page)
 
-
-if __name__ == '__main__':
-    ft.app(target=main, view=ft.AppView.FLET_APP)

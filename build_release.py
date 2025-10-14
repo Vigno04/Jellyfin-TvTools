@@ -116,31 +116,24 @@ def create_release_package():
     data_dir.mkdir(exist_ok=True)
     print("Created data/ directory for user data")
     
-    # Create a run script for convenience
-    if system == "Windows":
-        with open(release_dir / "run.bat", "w") as f:
-            f.write(f"@echo off\n{exe_name}\n")
-    else:
-        with open(release_dir / "run.sh", "w") as f:
-            f.write(f"#!/bin/bash\n./{exe_name}\n")
-        os.chmod(release_dir / "run.sh", 0o755)
-    
-    # Create README for the release
-    with open(release_dir / "RELEASE_README.txt", "w") as f:
+    # Create a simple README for the release
+    with open(release_dir / "README.txt", "w") as f:
         f.write("Jellyfin TV Tools - Release Package\n")
         f.write("="*50 + "\n\n")
         f.write("How to run:\n")
         if system == "Windows":
             f.write("  - Double-click JellyfinTvTools.exe\n")
-            f.write("  - Or run run.bat\n")
         else:
             f.write("  - Run ./JellyfinTvTools\n")
-            f.write("  - Or run ./run.sh\n")
         f.write("\n")
         f.write("Notes:\n")
         f.write("  - First run may take a few seconds to start\n")
         f.write("  - Configuration will be saved in the data/ directory\n")
+        f.write("  - All your playlists and settings are stored locally\n")
         f.write("  - See README.md for full documentation\n")
+        f.write("\n")
+        f.write("Support:\n")
+        f.write("  - GitHub: https://github.com/Vigno04/Jellyfin-TvTools\n")
     
     print(f"\nRelease package created at: {release_dir}")
     
